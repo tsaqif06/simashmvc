@@ -1,0 +1,22 @@
+{
+	"name": "tsaqif06/simashmvc",
+	"description": "SIMAS Framework with HMVC Method",
+	"type": "project",
+	"autoload": {
+		"psr-4": {
+			"Tsaqif06\\Simashmvc\\": "src/",
+			"Core\\": "app/core/",
+			"Modules\\": "app/modules/"
+		}
+	},
+	"authors": [
+		{
+			"name": "Ahmad Tsaqif Al Arifin",
+			"email": "ahmadtsaqifal6@gmail.com"
+		}
+	],
+	"require": {
+		"firebase/php-jwt": "^6.10",
+		"envms/fluentpdo": "^2.2"
+	}
+}
