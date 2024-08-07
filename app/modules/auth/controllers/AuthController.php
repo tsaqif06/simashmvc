@@ -39,7 +39,7 @@ class AuthController extends Controller
             $userModel->create($data);
             header('Location: /login');
         } else {
-            $this->view->render('auth/register');
+            $this->view->render('auth/views/register');
         }
     }
 
@@ -48,6 +48,6 @@ class AuthController extends Controller
         // Implement logout functionality
         // Typically this involves removing the token or session data
         session_destroy();
-        header('Location: /login');
+        header('Location: ' . base_url('auth/login'));
     }
 }
