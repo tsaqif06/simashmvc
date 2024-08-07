@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Modules\Auth\Controllers;
 
 use Core\Controller;
 use App\Models\User;
@@ -27,7 +27,7 @@ class AuthController extends Controller
                 echo json_encode(['error' => 'Invalid credentials']);
             }
         } else {
-            $this->view->render('auth/login');
+            $this->view->render('auth/views/login');
         }
     }
 
@@ -41,12 +41,6 @@ class AuthController extends Controller
         } else {
             $this->view->render('auth/register');
         }
-    }
-
-    public function dashboard()
-    {
-        Middleware::webAuthenticate();
-        $this->view->render('user/dashboard');
     }
 
     public function logout()

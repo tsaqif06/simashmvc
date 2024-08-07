@@ -20,10 +20,8 @@ class Middleware
 
             try {
                 $decoded = JWT::decode($token, new Key(self::$SECRET_KEY, 'HS256'));
-
-                // Ensure that $decoded is an object and convert to array
                 if ($decoded instanceof \stdClass) {
-                    $_SESSION['user'] = (array) $decoded; // Convert stdClass to array
+                    $_SESSION['user'] = (array) $decoded;
                 } else {
                     throw new \Exception('Invalid token format');
                 }
@@ -51,7 +49,7 @@ class Middleware
     {
         session_start();
         if (!isset($_SESSION['user'])) {
-            header('Location: /login');
+            header('Location: ' . base_url('auth/login'));
             exit;
         }
     }

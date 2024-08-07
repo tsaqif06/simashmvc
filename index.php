@@ -1,28 +1,64 @@
 <?php
 require 'vendor/autoload.php';
+require 'app/helpers/url_helper.php';
 
-use Core\Middleware;
+$url = $_SERVER['REQUEST_URI'];
+$url = parse_url($url, PHP_URL_PATH);
+$baseUrl = '/simashmvc'; // Adjust this to your base URL
+if (strpos($url, $baseUrl) === 0) {
+    $url = substr($url, strlen($baseUrl));
+}
 
-// Route request
-$url = isset($_GET['url']) ? rtrim($_GET['url'], '/') : '';
+$url = trim($url, '/'); // Remove leading and trailing slashes
 $url = explode('/', $url);
 
-if (isset($url[0]) && $url[0] === 'api') {
-    $module = isset($url[1]) && !empty($url[1]) ? $url[1] : 'default_module'; // Default module
-    $controller = isset($url[2]) ? $url[2] : 'ApiHewanController';
-    $method = isset($url[3]) ? $url[3] : 'getAll';
-    $params = array_slice($url, 4);
+// Debug output
+// var_dump($url);
 
-    // Construct controller path
-    $controllerPath = 'app/modules/' . $module . '/api/' . $controller . '.php';
-    echo "Controller Path: $controllerPath<br>"; // Debugging the controller path
+if (isset($url[0]) && $url[0] === 'api') {
+    // Handle API requests
+    $module = $url[1] ?? 'default';
+    $controller = $url[2] ?? 'ApiDefaultController';
+    $method = $url[3] ?? 'index';
+    $params = array_slice($url, 4);
+    handleRequest($module, $controller, $method, $params, 'api');
+} else {
+    // Handle web requests
+    $module = !empty($url[0]) ? $url[0] : 'dashboard';
+    $controller = $url[1] ?? 'DashboardController'; // Default controller if none provided
+    $method = $url[2] ?? 'index'; // Default method if none provided
+    $params = array_slice($url, 3);
+    handleRequest($module, $controller, $method, $params, 'controllers');
+}
+
+function handleRequest($module, $controller, $method, $params, $type)
+{
+    if ($controller == 'login' || $controller == 'logout' || $controller == 'register') {
+
+        if ($controller === 'login') {
+            $method = 'login';
+        } elseif ($controller === 'register') {
+            $method = 'register';
+        } elseif ($controller === 'logout') {
+            $method = 'logout';
+        }
+
+        $controller = 'AuthController';
+    } else {
+        $controller = ucfirst($controller) . 'Controller';
+    }
+    // Adjust the path based on your folder structure
+    $controllerPath = 'app/modules/' . $module . '/' . $type . '/' . $controller . '.php';
+
+    // Ensure namespace and class name are correctly formatted
+    $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($type) . "\\" . ucfirst($controller);
+
     if (file_exists($controllerPath)) {
         require_once $controllerPath;
-        $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\Api\\" . ucfirst($controller);
         if (class_exists($controllerClass)) {
-            $controller = new $controllerClass();
-            if (method_exists($controller, $method)) {
-                call_user_func_array([$controller, $method], $params);
+            $controllerInstance = new $controllerClass();
+            if (method_exists($controllerInstance, $method)) {
+                call_user_func_array([$controllerInstance, $method], $params);
             } else {
                 http_response_code(404);
                 echo json_encode(['error' => "Method $method not found"]);
@@ -34,28 +70,5 @@ if (isset($url[0]) && $url[0] === 'api') {
     } else {
         http_response_code(404);
         echo json_encode(['error' => "Controller file $controllerPath not found"]);
-    }
-} else {
-    $module = isset($url[0]) && !empty($url[0]) ? $url[0] : 'dashboard'; // Default module
-    $controller = isset($url[1]) ? $url[1] : 'DashboardController'; // Default controller
-    $method = isset($url[2]) ? $url[2] : 'index';
-    $params = array_slice($url, 3);
-
-    $controllerPath = 'app/modules/' . $module . '/controllers/' . $controller . '.php';
-    if (file_exists($controllerPath)) {
-        require_once $controllerPath;
-        $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\Controllers\\" . ucfirst($controller);
-        if (class_exists($controllerClass)) {
-            $controller = new $controllerClass();
-            if (method_exists($controller, $method)) {
-                call_user_func_array([$controller, $method], $params);
-            } else {
-                echo "Method $method not found in controller $controllerClass.";
-            }
-        } else {
-            echo "Controller class $controllerClass not found.";
-        }
-    } else {
-        echo "Controller file $controllerPath not found.";
     }
 }
